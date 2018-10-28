@@ -1,6 +1,7 @@
 package uk.co.samwho.result;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -13,21 +14,21 @@ public final class Result<S> implements Supplier<S> {
   /**
    * Creates a successful Result.
    *
-   * @param S s the result value.
+   * @param S s the result value, must be non-null.
    * @return the successful result.
    */
-  public static <E extends Exception, S> Result<S> success(S s) {
-    return new Result<>(null, s);
+  public static <S> Result<S> success(S s) {
+    return new Result<>(null, Objects.requireNonNull(s));
   }
 
   /**
    * Creates a failed Result.
    *
-   * @param E e the error.
+   * @param E e the error, must be non-null.
    * @return the erroneous Result.
    */
-  public static <E extends Exception, S> Result<S> fail(E e) {
-    return new Result<>(e, null);
+  public static <S> Result<S> fail(Exception e) {
+    return new Result<>(Objects.requireNonNull(e), null);
   }
 
   /**
@@ -39,7 +40,8 @@ public final class Result<S> implements Supplier<S> {
    * @param ThrowingSupplier<S> the value supplier.
    * @return the Result.
    */
-  public static <E extends Exception, S> Result<S> from(ThrowingSupplier<S> s) {
+  public static <S> Result<S> from(ThrowingSupplier<S> s) {
+    Objects.requireNonNull(s);
     try {
       return success(s.get());
     } catch (Exception t) {
