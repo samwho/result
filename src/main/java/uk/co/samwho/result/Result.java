@@ -14,6 +14,14 @@ public final class Result<S> implements Supplier<S> {
     return new Result<>(e, null);
   }
 
+  public static <E extends Throwable, S> Result<S> from(ThrowingSupplier<S> s) {
+    try {
+      return success(s.get());
+    } catch (Throwable t) {
+      return fail(t);
+    }
+  }
+
   private final Throwable e;
   private final S s;
 
@@ -74,6 +82,10 @@ public final class Result<S> implements Supplier<S> {
     } else {
       return this;
     }
+  }
+
+  public Result<S> wrapError(Function<Throwable, Throwable> f) {
+    return mapError(f);
   }
 
   public Optional<S> asOptional() {

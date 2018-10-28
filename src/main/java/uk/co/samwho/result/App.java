@@ -7,15 +7,17 @@ import java.util.concurrent.ThreadLocalRandom;
  * Hello world!
  */
 public final class App {
-    private App() {
-    }
-
-    /**
-     * Says hello to the world.
-     * @param args The arguments of the program.
-     */
     public static void main(String[] args) throws Throwable {
         System.out.println(doSomething().getOrThrow());
+        System.out.println(Result.from(App::woot).map(String::toUpperCase));
+    }
+
+    public static String woot() throws IOException {
+        if (ThreadLocalRandom.current().nextBoolean()) {
+            return "Hello";
+        } else {
+            throw new IOException();
+        }
     }
 
     public static Result<Integer> doSomething() {
