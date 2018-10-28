@@ -1,5 +1,7 @@
 package uk.co.samwho.result;
 
+import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -52,17 +54,30 @@ public final class Result<S> implements Supplier<S> {
 
   public <N> Result<N> map(Function<S, N> f) {
     if (isError()) {
-      return new Result<>(this.e, null);
+      return Result.fail(e);
     } else {
-      return new Result<>(null, f.apply(this.s));
+      return Result.success(f.apply(s));
     }
   }
 
   public Result<S> mapError(Function<Throwable, Throwable> f) {
     if (isError()) {
-      return new Result<>(f.apply(this.e), null);
+      return Result.fail(f.apply(e));
     } else {
-      return new Result<>(null, s);
+      return this;
     }
+  }
+
+  public Result<S> wrapError(BiFunction<String, Throwable, Throwable> f, String message) {
+    if (isError()) {
+      return Result.fail(f.apply(message, e));
+    } else {
+      return this;
+    }
+  }
+
+  public Optional<S> asOptional() {
+    if (isError()) return Optional.empty();
+    return Optional.of(s);
   }
 }

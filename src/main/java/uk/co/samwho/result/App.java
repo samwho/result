@@ -19,7 +19,9 @@ public final class App {
     }
 
     public static Result<Integer> doSomething() {
-        return getString().map(Integer::valueOf);
+        return getString()
+            .map(Integer::valueOf)
+            .wrapError(IllegalStateException::new, "crap");
     }
 
     public static Result<String> getString() {
