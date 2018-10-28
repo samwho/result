@@ -74,6 +74,18 @@ public class ResultTest {
   }
 
   @Test
+  public void testMapErrorShortWorks() {
+    Result<Integer> result =
+      Result.<Integer>fail(new IOException("uh oh"))
+        .mapError(IllegalArgumentException::new);
+
+    assertThat(result.isError()).isTrue();
+    assertThat(result.getError()).isInstanceOf(IllegalArgumentException.class);
+    assertThat(result.getError().getCause()).isInstanceOf(IOException.class);
+    assertThat(result.getError().getCause()).hasMessageThat().isEqualTo("uh oh");
+  }
+
+  @Test
   public void testWrapErrorWorks() {
     Result<Integer> result =
       Result.<Integer>fail(new IOException("uh oh"))
