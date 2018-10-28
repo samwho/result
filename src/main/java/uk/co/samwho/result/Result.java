@@ -16,7 +16,7 @@ public final class Result<S> implements Supplier<S> {
    * @param S s the result value.
    * @return the successful result.
    */
-  public static <E extends Throwable, S> Result<S> success(S s) {
+  public static <E extends Exception, S> Result<S> success(S s) {
     return new Result<>(null, s);
   }
 
@@ -26,7 +26,7 @@ public final class Result<S> implements Supplier<S> {
    * @param E e the error.
    * @return the erroneous Result.
    */
-  public static <E extends Throwable, S> Result<S> fail(E e) {
+  public static <E extends Exception, S> Result<S> fail(E e) {
     return new Result<>(e, null);
   }
 
@@ -39,18 +39,18 @@ public final class Result<S> implements Supplier<S> {
    * @param ThrowingSupplier<S> the value supplier.
    * @return the Result.
    */
-  public static <E extends Throwable, S> Result<S> from(ThrowingSupplier<S> s) {
+  public static <E extends Exception, S> Result<S> from(ThrowingSupplier<S> s) {
     try {
       return success(s.get());
-    } catch (Throwable t) {
+    } catch (Exception t) {
       return fail(t);
     }
   }
 
-  private final Throwable e;
+  private final Exception e;
   private final S s;
 
-  private Result(Throwable e, S s) {
+  private Result(Exception e, S s) {
     this.e = e;
     this.s = s;
   }
@@ -63,7 +63,7 @@ public final class Result<S> implements Supplier<S> {
     return s != null;
   }
 
-  public Throwable getError() {
+  public Exception getError() {
     if (!isError())
       throw new NoSuchElementException("Attempted to retrieve error on non-erroneous result");
     return e;
@@ -76,7 +76,12 @@ public final class Result<S> implements Supplier<S> {
     return s;
   }
 
-  public S getOrThrow() throws Throwable {
+  public S getOrElse(S def) {
+    if (isError()) return def;
+    return s;
+  }
+
+  public S getOrThrow() throws Exception {
     if (isError()) throw e;
     return s;
   }
@@ -87,17 +92,17 @@ public final class Result<S> implements Supplier<S> {
     return Result.from(() -> f.apply(s));
   }
 
-  public Result<S> mapError(Function<Throwable, Throwable> f) {
+  public Result<S> mapError(Function<Exception, Exception> f) {
     if (isError()) return Result.fail(f.apply(e));
     return this;
   }
 
-  public Result<S> wrapError(BiFunction<String, Throwable, Throwable> f, String message) {
+  public Result<S> wrapError(BiFunction<String, Exception, Exception> f, String message) {
     if (isError()) return Result.fail(f.apply(message, e));
     return this;
   }
 
-  public Result<S> wrapError(Function<Throwable, Throwable> f) {
+  public Result<S> wrapError(Function<Exception, Exception> f) {
     return mapError(f);
   }
 
