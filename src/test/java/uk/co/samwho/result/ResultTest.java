@@ -2,10 +2,12 @@ package uk.co.samwho.result;
 
 import org.junit.Test;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ResultTest {
   @Test
@@ -36,6 +38,22 @@ public class ResultTest {
   public void testCanGetError() {
     Result<String> result = Result.fail(new RuntimeException("ruh roh"));
     assertThat(result.getError()).hasMessageThat().isEqualTo("ruh roh");
+  }
+
+  @Test
+  public void testIfErrorWorks() {
+    AtomicBoolean bool = new AtomicBoolean(false);
+    Result.fail(new RuntimeException("ruh roh"))
+      .ifError(e -> bool.set(true));
+    assertThat(bool.get()).isTrue();
+  }
+
+  @Test
+  public void testIfSuccessWorks() {
+    AtomicBoolean bool = new AtomicBoolean(false);
+    Result.success(10)
+      .ifSuccess(e -> bool.set(true));
+    assertThat(bool.get()).isTrue();
   }
 
   @Test(expected = NoSuchElementException.class)
@@ -104,6 +122,14 @@ public class ResultTest {
     assertThat(fail.getOrElse(10)).isEqualTo(10);
     Result<Integer> success = Result.success(1);
     assertThat(success.getOrElse(10)).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetOrElseSupplierWorks() {
+    Result<Integer> fail = Result.fail(new IOException("uh oh"));
+    assertThat(fail.getOrElse(e -> 10)).isEqualTo(10);
+    Result<Integer> success = Result.success(1);
+    assertThat(success.getOrElse(e -> 10)).isEqualTo(1);
   }
 
   @Test

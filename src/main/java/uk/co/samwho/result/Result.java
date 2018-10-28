@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -118,6 +119,19 @@ public final class Result<S> implements Supplier<S> {
 
   /**
    * Returns the result value unless the Result is erroneous,
+   * in which case a function is called and the result of that
+   * function is used.
+   *
+   * @param Function<Exception,S> a function that takes the error
+   *    value and returns a suitable default.
+   */
+  public S getOrElse(Function<Exception, S> f) {
+    if (isError()) return f.apply(e);
+    return s;
+  }
+
+  /**
+   * Returns the result value unless the Result is erroneous,
    * in which case the error value is thrown.
    */
   public S getOrThrow() throws Exception {
@@ -152,6 +166,28 @@ public final class Result<S> implements Supplier<S> {
    */
   public Result<S> mapError(Function<Exception, Exception> f) {
     if (isError()) return Result.fail(f.apply(e));
+    return this;
+  }
+
+  /**
+   * If the Result is erroneous, calls the given {@code Consumer} on
+   * the error result.
+   *
+   * @return this
+   */
+  public Result<S> ifError(Consumer<Exception> consumer) {
+    if (isError()) consumer.accept(e);
+    return this;
+  }
+
+  /**
+   * If the Result is successful, calls the given {@code Consumer} on
+   * the result.
+   *
+   * @return this
+   */
+  public Result<S> ifSuccess(Consumer<S> consumer) {
+    if (isSuccess()) consumer.accept(s);
     return this;
   }
 
